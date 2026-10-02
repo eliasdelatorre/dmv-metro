@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Metro Board</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="controls" id="controls">
+    <label for="station">Station</label>
+    <select id="station" aria-label="Station"><option>Loading stations…</option></select>
+    <button id="nearest" type="button" title="Pick the station closest to you">Nearest</button>
+    <button id="fullscreen" type="button" title="Toggle full screen">Full screen</button>
+  </header>
+
+  <main class="board" id="board" aria-live="polite">
+    <div class="title" id="title"></div>
+    <div class="colheads"><span class="h-ln">LN</span><span class="h-car">CAR</span><span class="h-dest">DESTINATION</span><span class="h-min">MIN</span></div>
+    <div class="rows" id="rows"></div>
+  </main>
+
+  <footer class="status" id="status">Starting…</footer>
+
+  <script src="/board.js"></script>
+</body>
+</html>
