@@ -101,12 +101,13 @@ body.kiosk .controls { display: none; }
 .cell span { display: block; height: var(--ch); line-height: var(--ch); }
 .cell .bottom span, .cell .fb span { transform: translateY(-50%); }
 
-/* the hinge line */
+/* the hinge line: scales with the cell so it stays hair-thin on small screens */
 .cell::after {
   content: "";
   position: absolute;
-  left: 0; right: 0; top: calc(50% - 1px);
-  height: 2px;
+  left: 0; right: 0; top: 50%;
+  height: clamp(1px, calc(var(--ch) * 0.03), 3px);
+  transform: translateY(-50%);
   background: #050505;
   z-index: 5;
 }
