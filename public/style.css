@@ -3,7 +3,7 @@
   --ch: calc(var(--cw) * 1.5);       /* character cell height */
   --gap: calc(var(--cw) * 0.12);
   --face: #1c1c1c;
-  --ink: #f1ead2;
+  --ink: #e1dfd8;
   --dur: 35ms;
 }
 
