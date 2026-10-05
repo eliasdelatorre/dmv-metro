@@ -45,6 +45,8 @@
     night:    { radius: 3.4, a0: 0.45,   a1: 0.16,  hot: 0.55,   behind: true,
                 bloom: [{ factor: 6, alpha: 0.8 }, { factor: 18, alpha: 1 }] },
   };
+  // How long the flicker lasts when new data arrives, in milliseconds. Set to 0 to turn it off.
+  const FLICKER_MS = 350;
   const glowName = new URLSearchParams(location.search).get("glow") || GLOW_PRESET;
   const GL = GLOW_PRESETS[glowName] || GLOW_PRESETS.balanced;
 
@@ -333,6 +335,15 @@
 
     return {
       set(patch) { Object.assign(model, patch); describe(); schedule(); },
+      // Brief flicker, like an LED sign refreshing: tells the viewer fresh data just arrived.
+      flicker() {
+        if (!FLICKER_MS || !canvas.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const steps = [1, 0.2, 1, 0.45, 0.1, 1, 0.6, 1];
+        canvas.animate(
+          steps.map((o) => ({ opacity: o, easing: "steps(1, end)" })), // hold each level, then jump
+          { duration: FLICKER_MS }
+        );
+      },
       resize: layout,
     };
   }

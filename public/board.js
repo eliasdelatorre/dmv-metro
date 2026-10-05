@@ -117,7 +117,7 @@
     view.trains = trains;
     view.message = "";
     view.ready = true;
-    if (view.mode === "led") led.set({ trains, message: "" });
+    if (view.mode === "led") { led.set({ trains, message: "" }); led.flicker(); }
     else renderTrains(trains);
   }
 
