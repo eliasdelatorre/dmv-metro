@@ -3,7 +3,9 @@
 
   // ---------- configuration ----------
   const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'";
-  const DUR = 70;            // ms per flap flip (keep in sync with --dur in style.css)
+  // ms per flap flip. The single source of truth is --dur in style.css; we read it here.
+  const cssDur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur"));
+  const DUR = cssDur > 0 ? cssDur : 35; // fallback if the CSS value is missing or unreadable
   const ROWS = 8;            // trains shown
   const DEST_LEN = 18;
   const TITLE_LEN = 24;

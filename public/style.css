@@ -4,7 +4,7 @@
   --gap: calc(var(--cw) * 0.12);
   --face: #1c1c1c;
   --ink: #f1ead2;
-  --dur: 70ms;
+  --dur: 35ms;
 }
 
 * { box-sizing: border-box; }
