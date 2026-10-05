@@ -4,7 +4,7 @@
   --gap: calc(var(--cw) * 0.12);
   --face: #1c1c1c;
   --ink: #e1dfd8;
-  --dur: 35ms;
+  --dur: 27ms;                       /* flap flip time; board.js reads this value, keep it in ms */
 }
 
 * { box-sizing: border-box; }
@@ -29,9 +29,12 @@ body {
 /* ---- controls ---- */
 .controls {
   display: flex;
+  flex-wrap: wrap;            /* wrap on narrow screens instead of overflowing */
+  justify-content: center;
   gap: 8px;
   align-items: center;
   font-size: 14px;
+  max-width: 100%;
   transition: opacity .4s;
 }
 .controls label { opacity: .7; }
@@ -43,7 +46,7 @@ body {
   padding: 6px 10px;
   font: inherit;
 }
-.controls select { max-width: 60vw; }
+.controls select { max-width: 100%; min-width: 0; }
 .controls button { cursor: pointer; }
 .controls button:hover { border-color: #777; }
 body.kiosk .controls, body.idle .controls { opacity: 0; pointer-events: none; }
@@ -131,6 +134,19 @@ body.kiosk .controls { display: none; }
 .ln-YL { --face: #d8b800; --ink: #1a1a1a; }
 .ln-GR { --face: #1e8f4e; }
 .ln-SV { --face: #9ba0a6; --ink: #151515; }
+
+/* ---- LED dot-matrix style ---- */
+.ledwrap {
+  background: #050505;
+  border-radius: 12px;
+  box-shadow: 0 0 0 4px #2a2a2a, 0 20px 60px rgba(0,0,0,.6);
+  overflow: hidden;
+  line-height: 0;
+}
+.ledwrap canvas { display: block; }
+html.style-led #board { display: none; }
+html.style-flap #ledwrap { display: none; }
+#style { max-width: none; }
 
 /* ---- status ---- */
 .status {

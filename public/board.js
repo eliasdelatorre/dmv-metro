@@ -21,8 +21,8 @@
     const el = document.createElement("div");
     el.className = "cell";
     el.innerHTML =
-        '<div class="top"><span> </span></div><div class="bottom"><span> </span></div>' +
-        '<div class="ft"><span> </span></div><div class="fb"><span> </span></div>';
+      '<div class="top"><span> </span></div><div class="bottom"><span> </span></div>' +
+      '<div class="ft"><span> </span></div><div class="fb"><span> </span></div>';
     const q = (s) => el.querySelector(s + " span");
     return {
       el, top: q(".top"), bottom: q(".bottom"), ft: q(".ft"), fb: q(".fb"),
@@ -96,12 +96,47 @@
     return { ln, car, dest, min };
   });
 
+  // ---------- display style: flaps (default) or LED dots ----------
+  const root = document.documentElement;
+  const led = window.LedBoard.create(document.getElementById("led"), { rows: ROWS });
+  const view = {
+    mode: root.classList.contains("style-led") ? "led" : "flap",
+    title: "", trains: [], message: "",
+    ready: false, // true once there is something real to show
+  };
+
+  // Everything that changes the board goes through these three functions,
+  // so both styles always show the same data.
+  function setTitle(text) {
+    view.title = text;
+    if (view.mode === "led") led.set({ title: text });
+    else titleGroup.set(text, 14);
+  }
+
+  function showTrains(trains) {
+    view.trains = trains;
+    view.message = "";
+    view.ready = true;
+    if (view.mode === "led") led.set({ trains, message: "" });
+    else renderTrains(trains);
+  }
+
+  function showMessage(text) {
+    view.trains = [];
+    view.message = text;
+    view.ready = true;
+    if (view.mode === "led") led.set({ trains: [], message: text });
+    else showMessageRow(text);
+  }
+
   // ---------- state ----------
   const els = {
     select: document.getElementById("station"),
+    style: document.getElementById("style"),
     status: document.getElementById("status"),
     controls: document.getElementById("controls"),
   };
+  els.style.value = view.mode;
   const state = { stations: [], station: null, updatedAt: 0, loaded: false, token: 0, timer: null, note: "", noteClass: "" };
 
   function renderTrains(trains) {
@@ -164,7 +199,7 @@
     try {
       const data = await getJSON("/api/predictions?codes=" + st.codes.join(","));
       if (token !== state.token) return; // user switched station meanwhile
-      renderTrains(data.trains);
+      showTrains(data.trains);
       state.loaded = true;
       state.updatedAt = data.updatedAt;
       state.note = data.stale ? "WMATA is not responding" : "";
@@ -177,7 +212,7 @@
       } else {
         // Nothing has loaded yet: retry soon instead of waiting for the next 20s refresh.
         state.note = "Could not load trains: " + err.message + " · retrying…";
-        showMessageRow("CONNECTING");
+        showMessage("CONNECTING");
         clearTimeout(state.retryTimer);
         state.retryTimer = setTimeout(refresh, 4000);
       }
@@ -191,7 +226,7 @@
     state.updatedAt = 0;
     state.note = "";
     els.select.value = st.id;
-    titleGroup.set(st.name.replace(/[^A-Za-z0-9\-/.' ]/g, " "), 14);
+    setTitle(st.name.replace(/[^A-Za-z0-9\-/.' ]/g, " "));
     if (push) {
       const p = new URLSearchParams(location.search);
       p.set("station", st.id);
@@ -235,6 +270,31 @@
     if (st) selectStation(st);
   });
 
+  function applyStyle(mode) {
+    view.mode = mode === "led" ? "led" : "flap";
+    root.classList.toggle("style-led", view.mode === "led");
+    root.classList.toggle("style-flap", view.mode !== "led");
+    els.style.value = view.mode;
+    // Bring the newly shown style up to date with what is currently known.
+    if (view.mode === "led") {
+      led.resize();
+      led.set({ title: view.title, trains: view.trains, message: view.message });
+    } else {
+      titleGroup.set(view.title, 14);
+      if (view.ready) {
+        if (view.message) showMessageRow(view.message);
+        else renderTrains(view.trains);
+      }
+    }
+    // Remember the choice in the URL and in this browser.
+    const p = new URLSearchParams(location.search);
+    p.set("style", view.mode);
+    history.replaceState(null, "", "?" + p.toString());
+    try { localStorage.setItem("metro-board-style", view.mode); } catch (_) {}
+  }
+
+  els.style.addEventListener("change", () => applyStyle(els.style.value));
+
   document.getElementById("fullscreen").addEventListener("click", () => {
     if (document.fullscreenElement) document.exitFullscreen();
     else document.documentElement.requestFullscreen?.();
@@ -243,19 +303,19 @@
   document.getElementById("nearest").addEventListener("click", () => {
     if (!navigator.geolocation) { alert("Location is not available in this browser."); return; }
     navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude: la, longitude: lo } = pos.coords;
-          const rad = (d) => (d * Math.PI) / 180;
-          const dist = (s) => {
-            const dLat = rad(s.lat - la), dLon = rad(s.lon - lo);
-            const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(la)) * Math.cos(rad(s.lat)) * Math.sin(dLon / 2) ** 2;
-            return 2 * Math.asin(Math.sqrt(a));
-          };
-          const best = state.stations.reduce((a, b) => (dist(a) <= dist(b) ? a : b));
-          selectStation(best);
-        },
-        () => alert("Could not get your location."),
-        { timeout: 8000 }
+      (pos) => {
+        const { latitude: la, longitude: lo } = pos.coords;
+        const rad = (d) => (d * Math.PI) / 180;
+        const dist = (s) => {
+          const dLat = rad(s.lat - la), dLon = rad(s.lon - lo);
+          const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(la)) * Math.cos(rad(s.lat)) * Math.sin(dLon / 2) ** 2;
+          return 2 * Math.asin(Math.sqrt(a));
+        };
+        const best = state.stations.reduce((a, b) => (dist(a) <= dist(b) ? a : b));
+        selectStation(best);
+      },
+      () => alert("Could not get your location."),
+      { timeout: 8000 }
     );
   });
 
@@ -287,7 +347,7 @@
       state.note = `Could not load stations: ${err.message} · retrying in ${wait}s`;
       state.noteClass = "err";
       setStatus();
-      if (attempt === 0) showMessageRow("CONNECTING");
+      if (attempt === 0) showMessage("CONNECTING");
       setTimeout(() => start(attempt + 1), wait * 1000);
     }
   }

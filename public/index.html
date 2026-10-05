@@ -4,12 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Metro Board</title>
+  <script>
+    // Choose the display style before the page paints, so there is no flash of the other one.
+    (function () {
+      var cls = "style-flap";
+      try {
+        var s = new URLSearchParams(location.search).get("style") || localStorage.getItem("metro-board-style");
+        if (s === "led") cls = "style-led";
+      } catch (e) {}
+      document.documentElement.classList.add(cls);
+    })();
+  </script>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <header class="controls" id="controls">
     <label for="station">Station</label>
     <select id="station" aria-label="Station"><option>Loading stations…</option></select>
+    <select id="style" aria-label="Display style" title="Display style">
+      <option value="flap">Flaps</option>
+      <option value="led">LED</option>
+    </select>
     <button id="nearest" type="button" title="Pick the station closest to you">Nearest</button>
     <button id="fullscreen" type="button" title="Toggle full screen">Full screen</button>
   </header>
@@ -20,8 +35,11 @@
     <div class="rows" id="rows"></div>
   </main>
 
+  <div class="ledwrap" id="ledwrap"><canvas id="led" role="img" aria-label="Upcoming trains"></canvas></div>
+
   <footer class="status" id="status">Starting…</footer>
 
+  <script src="/led.js"></script>
   <script src="/board.js"></script>
 </body>
 </html>
