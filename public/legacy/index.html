@@ -30,7 +30,7 @@ body.kiosk .controls { display: none; }
 
 /* ---- kiosk: this button appears when the screen is tapped, then hides again ---- */
 #exitKiosk {
-  display: none; position: fixed; top: 8px; left: 50%; width: 140px; margin-left: -70px;
+  display: none; position: fixed; z-index: 1000; top: 8px; left: 50%; width: 140px; margin-left: -70px;
   background: #1c1c1c; color: #e1dfd8; border: 1px solid #777;
   font-size: 16px; padding: 10px 0;
 }
@@ -116,7 +116,6 @@ body.kiosk .controls { display: none; }
   </select>
   <button id="kiosk" type="button" style="background:#1c1c1c;color:#e1dfd8;border:1px solid #3a3a3a;font-size:14px;padding:4px 8px;margin:0 4px;">Kiosk</button>
 </div>
-<button id="exitKiosk" type="button">Exit kiosk</button>
 
 <div class="board" id="flapBoard">
   <div class="title" id="flapTitle"></div>
@@ -128,6 +127,7 @@ body.kiosk .controls { display: none; }
 
 <div class="status" id="status">Starting... (if this stays, legacy.js did not load)</div>
 
+<button id="exitKiosk" type="button">Exit kiosk</button>
 <script src="legacy.js"></script>
 </body>
 </html>
