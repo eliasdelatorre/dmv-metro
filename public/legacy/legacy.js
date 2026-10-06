@@ -308,6 +308,16 @@
     }
   }
 
+  // Measure the board at a known size, then scale the text so the board
+  // fills the available width or height, whichever runs out first.
+  function fitBoard(el, availW, availH, fallback) {
+    el.style.fontSize = "100px";
+    var w = el.offsetWidth, h = el.offsetHeight;
+    if (!w || !h) { el.style.fontSize = fallback + "px"; return; } // hidden: cannot measure
+    var size = Math.floor(100 * Math.min(availW / w, availH / h) * 0.98);
+    el.style.fontSize = Math.max(6, size) + "px";
+  }
+
   // ---------- style switch and sizing ----------
   function layout() {
     var w = window.innerWidth || document.documentElement.clientWidth || 600;
@@ -315,11 +325,11 @@
     var kiosk = document.body.className.indexOf("kiosk") >= 0;
     var availW = Math.max(200, w - 16);
     var availH = Math.max(150, h - (kiosk ? 20 : 96));
-    // Flap board is about 30em wide and 18em tall; LED text is about 19em wide and 15em tall.
+    // Rough sizes (used only if a board is hidden and cannot be measured).
     var cw = Math.max(6, Math.floor(Math.min(availW / 30, availH / 18)));
-    var fs = Math.max(8, Math.floor(Math.min(availW / 19.2, availH / 15)));
-    flapBoard.style.fontSize = cw + "px";
-    ledBoard.style.fontSize = fs + "px";
+    var fs = Math.max(8, Math.floor(Math.min(availW / 19.2, availH / 12)));
+    fitBoard(flapBoard, availW, availH, cw);
+    fitBoard(ledBoard, availW, availH, fs);
   }
 
   function applyStyle(mode) {
