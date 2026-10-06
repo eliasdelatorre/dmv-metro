@@ -45,6 +45,10 @@
   function centerDigit(c) { return " " + c + " "; }
 
   // ---------- flap style: static tiles ----------
+  var allCells = [];   // every flap cell and its letter, kept so the board height can be stretched
+  var allSpans = [];
+  var flapRowEls = [];
+
   function makeCell() {
     var el = document.createElement("div");
     el.className = "cell";
@@ -55,6 +59,8 @@
     el.appendChild(span);
     el.appendChild(shade);
     el.appendChild(hinge);
+    allCells.push(el);
+    allSpans.push(span);
     return { el: el, span: span, ch: " " };
   }
 
@@ -100,6 +106,7 @@
       row.appendChild(r.dest.el);
       row.appendChild(r.min.el);
       holder.appendChild(row);
+      flapRowEls.push(row);
       flapRows.push(r);
     }
   })();
@@ -338,6 +345,35 @@
     el.style.fontSize = Math.max(6, size) + "px";
   }
 
+  // Make the flap rows taller (1 = normal) so the board can use leftover height on screens that are
+  // less wide than the board. The letters keep their width; only the flaps get taller.
+  var MAX_STRETCH = 1.3;
+  function stretchFlaps(f) {
+    var height = f === 1 ? "" : (1.5 * f) + "em";
+    var lineHeight = f === 1 ? "" : String(1.22 * f);
+    var i;
+    for (i = 0; i < allCells.length; i++) allCells[i].style.height = height;
+    for (i = 0; i < allSpans.length; i++) allSpans[i].style.lineHeight = lineHeight;
+    for (i = 0; i < flapRowEls.length; i++) flapRowEls[i].style.height = height;
+    $("flapTitle").style.height = height;
+  }
+
+  function fitFlapHeight(availH) {
+    if (flapBoard.style.display === "none") return;
+    var fs = parseFloat(flapBoard.style.fontSize);
+    var h0 = flapBoard.offsetHeight;
+    var room = availH * 0.98 - h0;
+    if (!h0 || !fs || room <= 0) return;
+    var f = Math.min(1 + room / ((ROWS + 1) * 1.5 * fs), MAX_STRETCH);
+    if (f < 1.01) return;
+    stretchFlaps(f);
+    var h1 = flapBoard.offsetHeight;
+    if (h1 > availH * 0.98 + 1) { // rounding made it too tall: back off
+      f = Math.max(1, 1 + (f - 1) * (availH * 0.98 - h0) / Math.max(1, h1 - h0));
+      stretchFlaps(f);
+    }
+  }
+
   // ---------- style switch and sizing ----------
   function layout() {
     var w = window.innerWidth || document.documentElement.clientWidth || 600;
@@ -350,7 +386,9 @@
     // Rough sizes (used only if a board is hidden and cannot be measured).
     var cw = Math.max(6, Math.floor(Math.min(availW / 30, availH / 18)));
     var fs = Math.max(8, Math.floor(Math.min(availW / 19.2, availH / 12)));
+    stretchFlaps(1); // measure at normal proportions first
     fitBoard(flapBoard, availW, availH, cw);
+    fitFlapHeight(availH);
     fitBoard(ledBoard, availW, availH, fs);
   }
 
