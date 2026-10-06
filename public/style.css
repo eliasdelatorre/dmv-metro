@@ -140,8 +140,9 @@ body.kiosk .controls { display: none; }
   display: none;
   position: fixed;
   top: 14px; left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
+  transform: translate3d(-50%, 0, 0);
+  will-change: transform;
+  z-index: 1000;
   background: #1c1c1c;
   color: var(--ink);
   border: 1px solid #777;
