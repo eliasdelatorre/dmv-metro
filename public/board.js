@@ -327,6 +327,34 @@
     );
   });
 
+  // ---------- kiosk mode ----------
+  // Kiosk hides the controls. Tapping the screen shows an "Exit kiosk" button for a few seconds.
+  const KIOSK_MENU_MS = 6000;
+  const exitBtn = document.getElementById("exitkiosk");
+  let kioskTimer;
+
+  function hideExit() { exitBtn.classList.remove("show"); }
+  function showExit() {
+    exitBtn.classList.add("show");
+    clearTimeout(kioskTimer);
+    kioskTimer = setTimeout(hideExit, KIOSK_MENU_MS);
+  }
+  function setKiosk(on) {
+    document.body.classList.toggle("kiosk", on);
+    clearTimeout(kioskTimer);
+    hideExit();
+    const p = new URLSearchParams(location.search); // keep it in the address, so a reload stays in kiosk
+    if (on) p.set("kiosk", "1"); else p.delete("kiosk");
+    history.replaceState(null, "", "?" + p.toString());
+    led.resize(); // the LED board uses the extra room
+  }
+
+  document.getElementById("kiosk").addEventListener("click", (e) => { e.stopPropagation(); setKiosk(true); });
+  exitBtn.addEventListener("click", () => setKiosk(false));
+  document.addEventListener("click", (e) => {
+    if (document.body.classList.contains("kiosk") && !e.target.closest("#exitkiosk")) showExit();
+  });
+
   // hide the controls when idle (handy for a wall display)
   let idleTimer;
   function wake() {

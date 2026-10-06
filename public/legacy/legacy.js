@@ -276,10 +276,12 @@
     return null;
   }
 
+  function isKiosk() { return document.body.className.indexOf("kiosk") >= 0; }
+
   function replaceUrl(station, style) {
     try {
       if (window.history && window.history.replaceState) {
-        var extra = /[?&]kiosk=1/.test(location.search) ? "&kiosk=1" : "";
+        var extra = isKiosk() ? "&kiosk=1" : "";
         window.history.replaceState(null, "", "?station=" + encodeURIComponent(station) + "&style=" + style + extra);
       }
     } catch (e) {}
@@ -357,6 +359,35 @@
     if (st) selectStation(st);
   };
   els.style.onchange = function () { applyStyle(els.style.value); };
+
+  // ---------- kiosk mode ----------
+  // Kiosk hides the controls. Tapping the screen shows an "Exit kiosk" button for a few seconds.
+  var KIOSK_MENU_MS = 6000;
+  var exitBtn = $("exitKiosk");
+  var kioskTimer = 0;
+
+  function hideExit() { exitBtn.className = ""; }
+  function showExit() {
+    exitBtn.className = "show";
+    clearTimeout(kioskTimer);
+    kioskTimer = setTimeout(hideExit, KIOSK_MENU_MS);
+  }
+  function setKiosk(on) {
+    document.body.className = on ? "kiosk" : "";
+    clearTimeout(kioskTimer);
+    hideExit();
+    if (state.station) replaceUrl(state.station.id, view.mode);
+    layout(); // use the room the controls took up
+  }
+  function stopBubble(e) {
+    e = e || window.event;
+    if (e.stopPropagation) e.stopPropagation(); else e.cancelBubble = true;
+  }
+  $("kiosk").onclick = function (e) { stopBubble(e); setKiosk(true); };
+  exitBtn.onclick = function (e) { stopBubble(e); setKiosk(false); };
+  function onTap() { if (isKiosk()) showExit(); }
+  document.onclick = onTap;
+  document.ontouchstart = onTap;
 
   var resizeTimer = 0;
   function onResize() {

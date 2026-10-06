@@ -5,6 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Metro Board</title>
   <script>
+    // Very old browsers (for example a first-generation Kindle Fire) cannot run this page, so
+    // send them to the simple version in /legacy/. Add ?modern=1 to skip this check.
+    (function () {
+      try {
+        if (/[?&]modern=1/.test(location.search)) return;
+        var ok = !!(window.fetch && window.Promise && window.URLSearchParams && window.AbortController &&
+          document.documentElement.classList && Element.prototype.closest &&
+          window.CSS && CSS.supports && CSS.supports("--a", "0") &&
+          String.prototype.padStart && Array.from && Object.assign && Array.prototype.includes);
+        if (ok) {
+          try {
+            // the page uses modern JavaScript syntax; an old engine fails to read this line
+            new Function("async function f() { const { a } = {}; return `${a}` + (a?.b); } class C {}; 2 ** 2");
+          } catch (e) { ok = !(e instanceof SyntaxError); }
+        }
+        if (!ok) location.replace("/legacy/" + location.search);
+      } catch (e) {}
+    })();
+  </script>
+  <script>
     // Choose the display style before the page paints, so there is no flash of the other one.
     (function () {
       var cls = "style-flap";
@@ -27,6 +47,7 @@
     </select>
     <button id="nearest" type="button" title="Pick the station closest to you">Nearest</button>
     <button id="fullscreen" type="button" title="Toggle full screen">Full screen</button>
+    <button id="kiosk" type="button" title="Hide the controls. Tap the screen to bring back the exit button.">Kiosk</button>
   </header>
 
   <main class="board" id="board" aria-live="polite">
@@ -38,6 +59,8 @@
   <div class="ledwrap" id="ledwrap"><canvas id="led" role="img" aria-label="Upcoming trains"></canvas></div>
 
   <footer class="status" id="status">Starting…</footer>
+
+  <button class="exitkiosk" id="exitkiosk" type="button">Exit kiosk</button>
 
   <script src="/led.js"></script>
   <script src="/board.js"></script>

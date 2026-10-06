@@ -28,6 +28,14 @@ body { text-align: center; padding: 6px 0; }
 }
 body.kiosk .controls { display: none; }
 
+/* ---- kiosk: this button appears when the screen is tapped, then hides again ---- */
+#exitKiosk {
+  display: none; position: fixed; top: 8px; left: 50%; width: 140px; margin-left: -70px;
+  background: #1c1c1c; color: #e1dfd8; border: 1px solid #777;
+  font-size: 16px; padding: 10px 0;
+}
+#exitKiosk.show { display: block; }
+
 /* ---- status ---- */
 .status { font-size: 13px; color: #8a8570; margin-top: 8px; min-height: 16px; }
 .status.warn { color: #e0a040; }
@@ -106,7 +114,9 @@ body.kiosk .controls { display: none; }
     <option value="flap">Flaps</option>
     <option value="led">LED</option>
   </select>
+  <button id="kiosk" type="button" style="background:#1c1c1c;color:#e1dfd8;border:1px solid #3a3a3a;font-size:14px;padding:4px 8px;margin:0 4px;">Kiosk</button>
 </div>
+<button id="exitKiosk" type="button">Exit kiosk</button>
 
 <div class="board" id="flapBoard">
   <div class="title" id="flapTitle"></div>

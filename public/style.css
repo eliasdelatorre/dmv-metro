@@ -135,6 +135,24 @@ body.kiosk .controls { display: none; }
 .ln-GR { --face: #1e8f4e; }
 .ln-SV { --face: #9ba0a6; --ink: #151515; }
 
+/* ---- kiosk: the "Exit kiosk" button appears when the screen is tapped, then hides again ---- */
+.exitkiosk {
+  display: none;
+  position: fixed;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: #1c1c1c;
+  color: var(--ink);
+  border: 1px solid #777;
+  border-radius: 8px;
+  padding: 12px 22px;
+  font: 16px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .7);
+}
+body.kiosk .exitkiosk.show { display: block; }
+
 /* ---- LED dot-matrix style ---- */
 .ledwrap {
   background: #050505;
