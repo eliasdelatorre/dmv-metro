@@ -247,11 +247,19 @@
           state.retryTimer = setTimeout(refresh, 4000);
         }
       } else {
-        showTrains(data.trains || []);
-        state.loaded = true;
-        state.updatedAt = data.updatedAt;
-        state.note = data.stale ? "WMATA is not responding" : "";
-        state.noteClass = data.stale ? "warn" : "";
+        if (data.closed) {
+          showMessage("METRO IS CLOSED");
+          state.loaded = true;
+          state.updatedAt = 0;
+          state.note = "Metro is closed - reopens " + data.reopens;
+          state.noteClass = "";
+        } else {
+          showTrains(data.trains || []);
+          state.loaded = true;
+          state.updatedAt = data.updatedAt;
+          state.note = data.stale ? "WMATA is not responding" : "";
+          state.noteClass = data.stale ? "warn" : "";
+        }
       }
       setStatus();
     });

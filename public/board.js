@@ -199,11 +199,19 @@
     try {
       const data = await getJSON("/api/predictions?codes=" + st.codes.join(","));
       if (token !== state.token) return; // user switched station meanwhile
-      showTrains(data.trains);
-      state.loaded = true;
-      state.updatedAt = data.updatedAt;
-      state.note = data.stale ? "WMATA is not responding" : "";
-      state.noteClass = data.stale ? "warn" : "";
+      if (data.closed) {
+        showMessage("METRO IS CLOSED");
+        state.loaded = true;
+        state.updatedAt = 0; // nothing to count "updated Ns ago" from
+        state.note = `Metro is closed · reopens ${data.reopens}`;
+        state.noteClass = "";
+      } else {
+        showTrains(data.trains);
+        state.loaded = true;
+        state.updatedAt = data.updatedAt;
+        state.note = data.stale ? "WMATA is not responding" : "";
+        state.noteClass = data.stale ? "warn" : "";
+      }
     } catch (err) {
       if (token !== state.token) return;
       state.noteClass = "err";

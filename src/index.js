@@ -81,6 +81,32 @@ export function cleanTrains(trains) {
     .sort((a, b) => rank(a.min) - rank(b.min));
 }
 
+// ---------- closing hours (Washington time) ----------
+// While the Metro is closed we do not call WMATA at all. Times are minutes after midnight:
+// closed from the start time up to, but not including, the end time.
+const TIMEZONE = "America/New_York";
+const CLOSED_HOURS = {
+  Mon: [1 * 60, 4 * 60 + 30],
+  Tue: [1 * 60, 4 * 60 + 30],
+  Wed: [1 * 60, 4 * 60 + 30],
+  Thu: [1 * 60, 4 * 60 + 30],
+  Fri: [3 * 60, 4 * 60 + 40],
+  Sat: [3 * 60, 5 * 60 + 30],
+  Sun: [1 * 60, 5 * 60 + 30],
+};
+
+export function closedNow(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE, weekday: "short", hour: "numeric", minute: "numeric", hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type) => parts.find((p) => p.type === type).value;
+  const [start, end] = CLOSED_HOURS[get("weekday")];
+  const now = Number(get("hour")) * 60 + Number(get("minute"));
+  if (now < start || now >= end) return null;
+  const h = Math.floor(end / 60), m = end % 60;
+  return { reopens: `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}` };
+}
+
 function json(body, status = 200, extra = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -94,6 +120,7 @@ export default {
 
     try {
       if (url.pathname === "/api/stations") {
+        // Cached for 24 hours, so WMATA is asked at most about once a day.
         const r = await cached("stations", STATIONS_TTL_MS, async () => {
           const raw = await wmata("/Rail.svc/json/jStations", env);
           return groupStations(raw.Stations || []);
@@ -105,6 +132,12 @@ export default {
         const codes = (url.searchParams.get("codes") || "").toUpperCase().split(",").filter(Boolean);
         if (codes.length === 0 || codes.length > 4 || !codes.every((c) => /^[A-Z]\d{2}$/.test(c))) {
           return json({ error: "Provide 1-4 station codes, e.g. ?codes=A01,C01" }, 400);
+        }
+        // Closed: answer right away without touching the cache or WMATA.
+        // For testing: `wrangler dev --var FORCE_CLOSED:1` pretends the Metro is closed.
+        const closed = env.FORCE_CLOSED ? { reopens: "4:30 AM" } : closedNow();
+        if (closed) {
+          return json({ closed: true, reopens: closed.reopens, trains: [], updatedAt: Date.now(), stale: false }, 200, { "cache-control": "no-store" });
         }
         codes.sort();
         const key = "pred:" + codes.join(",");
