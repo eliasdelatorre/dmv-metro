@@ -145,6 +145,14 @@
 
   // ---------- state ----------
   var els = { select: $("station"), style: $("style"), status: $("status") };
+  // The status line floats over the bottom edge instead of taking room from the board.
+  // It is shown only when there is something to report (a problem, "loading", "closed").
+  (function () {
+    var st = els.status.style;
+    st.position = "fixed"; st.left = "0"; st.right = "0"; st.bottom = "0";
+    st.margin = "0"; st.padding = "2px 0"; st.background = "#0b0b0b";
+  })();
+
   var state = {
     stations: [], station: null, updatedAt: 0, loaded: false,
     token: 0, timer: null, retryTimer: null, note: "", noteClass: ""
@@ -195,6 +203,7 @@
     if (window.legacyFatal) {
       els.status.className = "status err";
       els.status.textContent = window.legacyFatal;
+      els.status.style.display = "block";
       return;
     }
     var text = "";
@@ -205,6 +214,7 @@
     if (state.note && state.updatedAt) text += " - showing data from " + secs + "s ago";
     els.status.textContent = text;
     els.status.className = "status " + cls;
+    els.status.style.display = state.note ? "block" : "none"; // the plain "Updated Ns ago" is not shown
   }
 
   // ---------- data ----------
@@ -334,7 +344,9 @@
     var h = window.innerHeight || document.documentElement.clientHeight || 400;
     var kiosk = document.body.className.indexOf("kiosk") >= 0;
     var availW = Math.max(200, w - 16);
-    var availH = Math.max(150, h - (kiosk ? 20 : 96));
+    // Leave room only for the controls (none in kiosk mode); the status line floats.
+    var ctl = $("controls");
+    var availH = Math.max(150, h - (kiosk ? 20 : ctl.offsetHeight + 32));
     // Rough sizes (used only if a board is hidden and cannot be measured).
     var cw = Math.max(6, Math.floor(Math.min(availW / 30, availH / 18)));
     var fs = Math.max(8, Math.floor(Math.min(availW / 19.2, availH / 12)));
