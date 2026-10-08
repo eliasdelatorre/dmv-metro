@@ -20,7 +20,13 @@
             new Function("async function f() { const { a } = {}; return `${a}` + (a?.b); } class C {}; 2 ** 2");
           } catch (e) { ok = !(e instanceof SyntaxError); }
         }
-        if (!ok) location.replace("/legacy/" + location.search);
+        if (!ok) {
+          location.replace("/legacy/" + location.search); // old device: simple version, same protocol (http)
+        } else if (location.protocol === "http:" &&
+                !/^(localhost$|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|\[)|\.local$/.test(location.hostname)) {
+          // modern device that arrived over http: continue on https (not for local testing addresses)
+          location.replace("https://" + location.host + location.pathname + location.search + location.hash);
+        }
       } catch (e) {}
     })();
   </script>
